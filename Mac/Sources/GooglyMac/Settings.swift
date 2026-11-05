@@ -42,6 +42,12 @@ final class Settings {
         set { defaults.set(newValue, forKey: "computerControl"); onChange?() }
     }
 
+    /// Claude Code and Gemini CLI run with no permission limits (Codex always does). Off = files only, no shell commands.
+    var coderFullAccess: Bool {
+        get { defaults.object(forKey: "coderFullAccess") as? Bool ?? false }
+        set { defaults.set(newValue, forKey: "coderFullAccess"); onChange?() }
+    }
+
     /// How the cursor's path shows while it flies.
     var trail: PointerTrail {
         get { PointerTrail(rawValue: defaults.string(forKey: "trail") ?? "") ?? .comet }

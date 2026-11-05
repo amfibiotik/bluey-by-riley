@@ -24,6 +24,17 @@ This fork adds Ukrainian. Bluey follows the device language by default: the iPho
 
 UI strings are written next to each other as `tr("English", "Українська")` (see `Shared/Language.swift`), so adding another language means adding a case and a third argument. Run `xcodegen generate` after pulling so the iPhone project picks up the new `Shared/Language.swift`.
 
+## Coding assistant: Codex, Claude Code or Gemini CLI
+
+Bluey can hand coding jobs ("get it to fix the login bug in my-app") to a coding assistant on the Mac. Pick one in the menu bar under **Coding Assistant / Кодер**:
+
+- **Codex** (as before): signs in with ChatGPT, always full access, no approvals.
+- **Claude Code** and **Gemini CLI**: use the sign-in you made once in Terminal (run `claude` or `gemini` and log in with your Claude or Google subscription). No API key is needed, and Bluey removes `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` and `GOOGLE_API_KEY` from the environment of these jobs so a pay-per-token key is never used by accident.
+
+Claude Code and Gemini CLI run headless, one process per job, in the project folder. By default they are **careful**: they may read and edit files, but shell commands are refused. **Claude / Gemini: full access** in the same menu removes the limits (`--dangerously-skip-permissions` / `--approval-mode yolo`). Differences from Codex: a running job cannot be steered mid-run (a follow-up starts after it finishes; Claude Code continues the same conversation, Gemini gets the earlier summary as context), and "open" reveals the project folder in Finder instead of a Codex thread.
+
+The voice tools keep their `codex_*` names internally; the model is told which assistant they drive.
+
 ## Screen sharing and privacy
 
 During a running focus session the Mac captures its **main display every 30 seconds** (every **10 real seconds in Developer Mode**), excluding Bluey's own windows, and sends a reduced JPEG to OpenAI with the declared task, active elapsed time, idle duration and up to eight recent check results. Real active time is distinguished from the accelerated test clock. If a nudge becomes due, a separate Responses request receives a fresh image and OCR target labels to prepare a short bubble and optional pointer target. No automatic clicking, app closing, website blocking or Codex delegation occurs in the monitoring path.

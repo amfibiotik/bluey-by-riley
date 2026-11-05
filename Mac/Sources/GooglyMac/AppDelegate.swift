@@ -9,9 +9,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let server = PhoneServer()
     private var statusItem: NSStatusItem!
     private let codex = CodexController()
+    private let claude = CLIAgentController(kind: .claude)
+    private let gemini = CLIAgentController(kind: .gemini)
+    private var agents: [CodingAgent] { [codex, claude, gemini] }
+    /// The coding assistant picked in the menu.
+    private var coder: CodingAgent {
+        switch CodingAgentKind.selected {
+        case .codex: return codex
+        case .claude: return claude
+        case .gemini: return gemini
+        }
+    }
     private let focus = FocusCompanion()
     private let pairingPanel = PairingPanel()
-    private lazy var host = RealtimeHost(overlay: overlay, codex: codex)
+    private lazy var host = RealtimeHost(overlay: overlay, codex: { [unowned self] in self.coder })
 
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -83,8 +94,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         server.start()
         host.onChange = { [weak self] in self?.refreshIcon() }
-        codex.onEvent = { [weak self] event in self?.codexEvent(event) }
-        codex.warmUp()
+        for agent in agents { agent.onEvent = { [weak self] event in self?.codexEvent(event) } }
+        if CodingAgentKind.selected == .codex { codex.warmUp() }
 
         // ⌥Space wakes him up or puts him back to sleep (same as double tapping him on the phone).
         HotKeys.shared.register(keyCode: kVK_Space, modifiers: optionKey) { [weak self] in self?.toggleAwake() }
@@ -104,7 +115,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         focus.shutdown()
-        codex.shutdown()
+        for agent in agents { agent.shutdown() }
     }
 
     /// A Codex job finished or wants a yes. Awake, he hears about it and says so himself (bubble, chirp,
@@ -135,16 +146,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = true
         panel.prompt = tr("Add", "Додати")
-        panel.message = tr("Folders Codex can work in when you ask Bluey", "Теки, у яких Codex може працювати на прохання Bluey")
+        panel.message = tr("Folders \(coder.displayName) can work in when you ask Bluey", "Теки, у яких \(coder.displayName) може працювати на прохання Bluey")
         guard panel.runModal() == .OK else { return }
         CodexProjects.added = CodexProjects.added + panel.urls.map(\.path).filter { !CodexProjects.added.contains($0) }
     }
 
     @objc private func openCodexJob(_ item: NSMenuItem) {
-        if let id = item.representedObject as? String { codex.open(threadID: id) }
+        if let id = item.representedObject as? String { coder.open(threadID: id) }
     }
 
-    @objc private func openCodex() { NSWorkspace.shared.open(URL(string: "codex://")!) }
+    @objc private func openCodex() { coder.openApp() }
+
+    @objc private func setCoder(_ item: NSMenuItem) {
+        guard let raw = item.representedObject as? String, let kind = CodingAgentKind(rawValue: raw) else { return }
+        CodingAgentKind.selected = kind
+        if kind == .codex { codex.warmUp() }
+        restartIfAwake()  // so the model learns which assistant its coding tools now drive
+    }
+
+    @objc private func toggleCoderFullAccess() { settings.coderFullAccess.toggle() }
 
     private func refreshIcon() {
         statusItem.button?.appearsDisabled = server.phoneNames.isEmpty
@@ -382,17 +402,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         menu.addItem(submenu(tr("Phone Sits Under", "Телефон стоїть під"), phoneMenu))
 
-        if CodexController.isInstalled {
+        let coderChoices = NSMenu()
+        for kind in CodingAgentKind.allCases {
+            let entry = item(kind.title + (kind.isInstalled ? "" : tr(" (not installed)", " (не встановлено)")), #selector(setCoder(_:)))
+            entry.representedObject = kind.rawValue
+            entry.state = CodingAgentKind.selected == kind ? .on : .off
+            coderChoices.addItem(entry)
+        }
+        coderChoices.addItem(.separator())
+        let fullAccess = item(tr("Claude / Gemini: full access (no limits)", "Claude / Gemini: повний доступ (без обмежень)"), #selector(toggleCoderFullAccess))
+        fullAccess.state = settings.coderFullAccess ? .on : .off
+        coderChoices.addItem(fullAccess)
+        menu.addItem(submenu(tr("Coding Assistant: ", "Кодер: ") + CodingAgentKind.selected.title, coderChoices))
+
+        if coder.installed {
             let codexMenu = NSMenu()
-            for job in codex.jobs.suffix(8).reversed() {
+            for job in coder.jobs.suffix(8).reversed() {
                 let j = item("\(job.project): \(CodexController.short(job.prompt, 40)) (\(job.status))", #selector(openCodexJob(_:)))
                 j.representedObject = job.threadID
                 codexMenu.addItem(j)
             }
-            if !codex.jobs.isEmpty { codexMenu.addItem(.separator()) }
+            if !coder.jobs.isEmpty { codexMenu.addItem(.separator()) }
             codexMenu.addItem(item(tr("Add Project Folder…", "Додати теку проєкту…"), #selector(addCodexFolder)))
-            codexMenu.addItem(item(tr("Open Codex", "Відкрити Codex"), #selector(openCodex)))
-            menu.addItem(submenu(codex.approvals.isEmpty ? "Codex" : tr("Codex (waiting for you)", "Codex (чекає на тебе)"), codexMenu))
+            codexMenu.addItem(item(tr("Open ", "Відкрити ") + coder.displayName, #selector(openCodex)))
+            menu.addItem(submenu(coder.approvals.isEmpty ? coder.displayName : coder.displayName + tr(" (waiting for you)", " (чекає на тебе)"), codexMenu))
         }
         menu.addItem(item(tr("Open Meeting Notes", "Відкрити нотатки зустрічей"), #selector(openNotes)))
         menu.addItem(item(tr("Personality…", "Характер…"), #selector(editPersonality)))

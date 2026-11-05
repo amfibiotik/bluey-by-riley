@@ -484,7 +484,7 @@ enum CodexProjects {
 
     /// ~/Documents/Bluey: where every thread he starts lives. Made (as a git repo) on first use and added to
     /// the Codex app's sidebar so his chats show up together.
-    static func blueyFolder() throws -> URL {
+    static func blueyFolder(register: Bool = true) throws -> URL {
         let fm = FileManager.default
         let folder = fm.homeDirectoryForCurrentUser.appendingPathComponent("Documents/Bluey", isDirectory: true)
         if !fm.fileExists(atPath: folder.appendingPathComponent(".git").path) {
@@ -500,7 +500,7 @@ enum CodexProjects {
             try? git.run()
             git.waitUntilExit()
         }
-        registerInCodexApp(folder.path)
+        if register { registerInCodexApp(folder.path) }
         return folder
     }
 
