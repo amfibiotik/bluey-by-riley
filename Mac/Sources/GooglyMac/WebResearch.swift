@@ -1,4 +1,5 @@
 import Foundation
+import GooglyShared
 
 /// A short researched answer: a title, up to four paragraphs, and where it came from.
 struct ResearchReport {
@@ -45,7 +46,7 @@ enum WebResearch {
             First line: a plain title of under eight words. Then one to four short paragraphs (four at most), \
             leading with the direct answer, then the most useful details. Plain text only: no markdown, \
             no headings, no bullet lists, and no links or citations in the text.
-            """,
+            """ + BlueyLanguage.current.modelDirective,
             "input": input,
         ])
         let (data, response) = try await URLSession.shared.data(for: request)

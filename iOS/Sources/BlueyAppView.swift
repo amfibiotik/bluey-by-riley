@@ -47,7 +47,7 @@ struct BlueyAppView: View {
                             Circle()
                                 .fill(link.connected ? Color(hex: 0x5BE49B) : Color(hex: Palette.inkSoft).opacity(0.5))
                                 .frame(width: 7, height: 7)
-                            Text(link.connected ? (link.macName ?? link.currentMac ?? "Mac") : "Looking for your Mac")
+                            Text(link.connected ? (link.macName ?? link.currentMac ?? "Mac") : tr("Looking for your Mac", "Шукаю твій Mac"))
                                 .font(.plexSans(12))
                                 .foregroundStyle(Color(hex: Palette.inkSoft))
                                 .lineLimit(1)
@@ -55,8 +55,8 @@ struct BlueyAppView: View {
                     }
                 }
 
-                Button("Focus sessions", action: openFocus).buttonStyle(.borderedProminent)
-                Button("Pair Mac (QR)", action: pairMac).buttonStyle(.bordered)
+                Button(tr("Focus sessions", "Сесії фокусу"), action: openFocus).buttonStyle(.borderedProminent)
+                Button(tr("Pair Mac (QR)", "Підключити Mac (QR)"), action: pairMac).buttonStyle(.bordered)
 
                 Button {
                     let starting = live.state == .asleep
@@ -65,7 +65,7 @@ struct BlueyAppView: View {
                 } label: {
                     HStack(spacing: 10) {
                         Image(systemName: live.state == .asleep ? "play.fill" : "stop.fill")
-                        Text(live.state == .asleep ? "Start listening" : "Stop listening")
+                        Text(live.state == .asleep ? tr("Start listening", "Почати слухати") : tr("Stop listening", "Припинити слухати"))
                     }
                     .font(.fredoka(18))
                     .foregroundStyle(.white)
@@ -83,15 +83,15 @@ struct BlueyAppView: View {
                 .opacity(!link.connected && live.state == .asleep ? 0.5 : 1)
 
                 Text(live.state == .asleep
-                     ? "He listens the whole session. Hold his face to ask something, let go and he answers."
-                     : "Listening. Hold his face to ask; use Focus sessions for the task and timer.")
+                     ? tr("He listens the whole session. Hold his face to ask something, let go and he answers.", "Він слухає всю сесію. Потримай його обличчя, щоб запитати, відпусти — і він відповість.")
+                     : tr("Listening. Hold his face to ask; use Focus sessions for the task and timer.", "Слухаю. Потримай його обличчя, щоб запитати; завдання й таймер — у «Сесіях фокусу»."))
                     .font(.plexSans(12))
                     .foregroundStyle(Color(hex: Palette.inkSoft))
 
                 Divider().overlay(Color.white.opacity(0.08))
 
                 VStack(alignment: .leading, spacing: 8) {
-                    label("Chirp volume")
+                    label(tr("Chirp volume", "Гучність цвірінькання"))
                     Slider(value: Binding(get: { volume }, set: { volume = $0; live.volume = $0 }), in: 0...1)
                 }
 
@@ -119,7 +119,7 @@ struct BlueyAppView: View {
                 Button(action: onClose) {
                     HStack(spacing: 8) {
                         Image(systemName: "face.smiling")
-                        Text("Back to his face")
+                        Text(tr("Back to his face", "Назад до його обличчя"))
                     }
                     .font(.plexSans(15).weight(.semibold))
                     .foregroundStyle(.white)
@@ -144,7 +144,7 @@ struct BlueyAppView: View {
     private var sessionList: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Voice history")
+                Text(tr("Voice history", "Історія розмов"))
                     .font(.fredoka(24))
                     .foregroundStyle(.white)
                 Spacer()
@@ -161,10 +161,10 @@ struct BlueyAppView: View {
                     Image(systemName: "text.bubble")
                         .font(.system(size: 34))
                         .foregroundStyle(Color(hex: Palette.berry2))
-                    Text("No sessions yet")
+                    Text(tr("No sessions yet", "Сесій ще немає"))
                         .font(.fredoka(18))
                         .foregroundStyle(.white)
-                    Text("Start one and your transcript and his replies show up here.")
+                    Text(tr("Start one and your transcript and his replies show up here.", "Почни одну — і тут з'являться твоя розшифровка та його відповіді."))
                         .font(.plexSans(13))
                         .foregroundStyle(Color(hex: Palette.inkSoft))
                 }
@@ -200,7 +200,7 @@ private struct SessionRow: View {
                         .font(.plexSans(15).weight(.semibold))
                         .foregroundStyle(.white)
                     if live {
-                        Text("LIVE")
+                        Text(tr("LIVE", "НАЖИВО"))
                             .font(.plexMono(10).weight(.bold))
                             .foregroundStyle(.black)
                             .padding(.horizontal, 6)
@@ -218,7 +218,7 @@ private struct SessionRow: View {
                 Text(Self.duration(session.duration))
                     .font(.plexMono(12))
                     .foregroundStyle(Color(hex: Palette.inkSoft))
-                Text("\(session.questionCount) asked")
+                Text(tr("\(session.questionCount) asked", "Запитань: \(session.questionCount)"))
                     .font(.plexMono(11))
                     .foregroundStyle(Color(hex: Palette.berry1))
             }
@@ -280,12 +280,12 @@ struct SessionDetailView: View {
                 }
                 .buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(session?.started.formatted(date: .abbreviated, time: .shortened) ?? "Session")
+                    Text(session?.started.formatted(date: .abbreviated, time: .shortened) ?? tr("Session", "Сесія"))
                         .font(.fredoka(20))
                         .foregroundStyle(.white)
                     if let session {
-                        Text("\(SessionRow.duration(session.duration)) · \(session.questionCount) asked"
-                             + (session.transcribing > 0 ? " · transcribing \(session.transcribing) chunk\(session.transcribing == 1 ? "" : "s")…" : ""))
+                        Text(tr("\(SessionRow.duration(session.duration)) · \(session.questionCount) asked", "\(SessionRow.duration(session.duration)) · запитань: \(session.questionCount)")
+                             + (session.transcribing > 0 ? tr(" · transcribing \(session.transcribing) chunk\(session.transcribing == 1 ? "" : "s")…", " · розшифровую фрагментів: \(session.transcribing)…") : ""))
                             .font(.plexMono(11))
                             .foregroundStyle(Color(hex: Palette.inkSoft))
                     }
@@ -295,7 +295,7 @@ struct SessionDetailView: View {
                     Button { copyPrompt(session) } label: {
                         HStack(spacing: 6) {
                             Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                            Text(copied ? "Copied" : "Copy prompt for agent")
+                            Text(copied ? tr("Copied", "Скопійовано") : tr("Copy prompt for agent", "Скопіювати запит для агента"))
                         }
                         .font(.plexSans(13).weight(.semibold))
                         .padding(.horizontal, 14)
@@ -350,7 +350,7 @@ private struct EntryView: View {
         switch entry.kind {
         case .transcript:
             HStack(alignment: .top, spacing: 10) {
-                Text(entry.speaker.map { "Speaker \($0)" } ?? "Speaker")
+                Text(entry.speaker.map { tr("Speaker \($0)", "Мовець \($0)") } ?? tr("Speaker", "Мовець"))
                     .font(.plexMono(11).weight(.medium))
                     .foregroundStyle(Self.speakerColor(entry.speaker))
                     .frame(width: 78, alignment: .leading)
@@ -374,7 +374,7 @@ private struct EntryView: View {
             HStack {
                 Spacer(minLength: 120)
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text("You asked")
+                    Text(tr("You asked", "Ти запитав"))
                         .font(.plexMono(10))
                         .foregroundStyle(Color(hex: Palette.berry1))
                     Text(entry.text)
@@ -415,7 +415,7 @@ private struct EntryView: View {
                 Button { withAnimation(.spring(duration: 0.3)) { open.toggle() } } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "doc.text.magnifyingglass").foregroundStyle(Color(hex: Palette.berry2))
-                        Text(lines.first ?? "Research")
+                        Text(lines.first ?? tr("Research", "Дослідження"))
                             .font(.fredoka(16))
                             .foregroundStyle(Color(hex: Palette.ink))
                             .multilineTextAlignment(.leading)

@@ -120,7 +120,7 @@ private struct ReportCard: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if !report.sources.isEmpty {
-                                Text("SOURCES")
+                                Text(tr("SOURCES", "ДЖЕРЕЛА"))
                                     .font(.custom("IBM Plex Mono", size: 11))
                                     .foregroundStyle(soft)
                                     .padding(.top, 4)
@@ -141,7 +141,7 @@ private struct ReportCard: View {
                         .font(.custom("IBM Plex Sans", size: 14))
                         .foregroundStyle(ink)
                         .lineLimit(3)
-                    Text("Click to read more")
+                    Text(tr("Click to read more", "Натисни, щоб читати далі"))
                         .font(.custom("IBM Plex Mono", size: 11))
                         .foregroundStyle(berry)
                 }
@@ -152,7 +152,7 @@ private struct ReportCard: View {
             } else {
                 HStack(spacing: 10) {
                     ProgressView().controlSize(.small)
-                    Text("Doing some research on \u{201C}\(model.question)\u{201D}")
+                    Text(tr("Doing some research on ", "Шукаю інформацію про ") + "\u{201C}\(model.question)\u{201D}")
                         .font(.custom("IBM Plex Sans", size: 14))
                         .foregroundStyle(soft)
                         .lineLimit(2)

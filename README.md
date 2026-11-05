@@ -14,6 +14,16 @@ The task appears at the phone's top left, with a large white countdown at bottom
 
 **Developer Mode:** turn it on at the top of **Focus** on the phone or in Bluey's Mac menu. The countdown runs **4× faster**, and the Mac checks the screen every **10 real seconds**. Repeated majority off-task choices nudge after two or three checks (about **20–30 real seconds**, plus request time); cooldown is 30 real seconds. **Test a nudge** checks the Mac bubble and phone chirp immediately without taking a screenshot. Changes take effect immediately on both devices, including during a session. Test sessions are labelled in history with their real active time, and the setting is remembered on the Mac. A fresh installation defaults to normal speed. Turning it off restores the real-time clock, 30-second checks and two-to-four-minute evidence span. Pause, lock and disconnect still stop capture normally.
 
+## Language / Мова
+
+This fork adds Ukrainian. Bluey follows the device language by default: the iPhone app uses the iPhone's language, and the Mac app uses macOS. Override the Mac with **Language / Мова** in the menu bar (the change reaches the model the next time Bluey wakes). In Ukrainian mode:
+
+- the Mac menu, the pairing window and every iPhone screen are in Ukrainian;
+- Bluey's character, nudges and research reports are written in Ukrainian (informal «ти»);
+- speech recognition gets a `uk` language hint, and on-screen text recognition (Apple Vision) also reads `uk-UA`.
+
+UI strings are written next to each other as `tr("English", "Українська")` (see `Shared/Language.swift`), so adding another language means adding a case and a third argument. Run `xcodegen generate` after pulling so the iPhone project picks up the new `Shared/Language.swift`.
+
 ## Screen sharing and privacy
 
 During a running focus session the Mac captures its **main display every 30 seconds** (every **10 real seconds in Developer Mode**), excluding Bluey's own windows, and sends a reduced JPEG to OpenAI with the declared task, active elapsed time, idle duration and up to eight recent check results. Real active time is distinguished from the accelerated test clock. If a nudge becomes due, a separate Responses request receives a fresh image and OCR target labels to prepare a short bubble and optional pointer target. No automatic clicking, app closing, website blocking or Codex delegation occurs in the monitoring path.

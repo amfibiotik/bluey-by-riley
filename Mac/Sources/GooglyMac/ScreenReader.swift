@@ -1,6 +1,7 @@
 import AppKit
 import ScreenCaptureKit
 import Vision
+import GooglyShared
 
 /// One thing on screen the character can point at or click: a control, a line of text or a single word.
 struct Target {
@@ -100,6 +101,11 @@ enum ScreenReader {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
+        // Ukrainian text is only read when asked for; keep English first so existing behaviour is unchanged.
+        if BlueyLanguage.current.isUkrainian,
+           let supported = try? request.supportedRecognitionLanguages(), supported.contains("uk-UA") {
+            request.recognitionLanguages = ["uk-UA"] + (supported.contains("en-US") ? ["en-US"] : [])
+        }
         try VNImageRequestHandler(cgImage: image).perform([request])
 
         func toScreen(_ box: CGRect) -> CGRect {

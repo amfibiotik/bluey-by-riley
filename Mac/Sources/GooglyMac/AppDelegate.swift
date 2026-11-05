@@ -134,8 +134,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = true
-        panel.prompt = "Add"
-        panel.message = "Folders Codex can work in when you ask Bluey"
+        panel.prompt = tr("Add", "Додати")
+        panel.message = tr("Folders Codex can work in when you ask Bluey", "Теки, у яких Codex може працювати на прохання Bluey")
         guard panel.runModal() == .OK else { return }
         CodexProjects.added = CodexProjects.added + panel.urls.map(\.path).filter { !CodexProjects.added.contains($0) }
     }
@@ -239,7 +239,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func stopActions() {
-        focus.pause("Stopped with ⌃⌥S")
+        focus.pause(tr("Stopped with ⌃⌥S", "Зупинено через ⌃⌥S"))
         host.stopActions()
     }
 
@@ -264,8 +264,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func editPersonality() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "His Personality"
-        alert.informativeText = "Describe who he is and how he talks. How he looks at and points at your screen stays built in."
+        alert.messageText = tr("His Personality", "Характер Bluey")
+        alert.informativeText = tr("Describe who he is and how he talks. How he looks at and points at your screen stays built in.", "Опиши, хто він і як говорить. Те, як він дивиться на екран і вказує на нього, вбудоване й не змінюється.")
         let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 480, height: 220))
         scroll.hasVerticalScroller = true
         scroll.borderType = .bezelBorder
@@ -277,9 +277,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         text.textContainerInset = NSSize(width: 6, height: 6)
         scroll.documentView = text
         alert.accessoryView = scroll
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Reset to Default")
+        alert.addButton(withTitle: tr("Save", "Зберегти"))
+        alert.addButton(withTitle: tr("Cancel", "Скасувати"))
+        alert.addButton(withTitle: tr("Reset to Default", "Скинути до типового"))
         alert.window.initialFirstResponder = text
         switch alert.runModal() {
         case .alertFirstButtonReturn: RealtimeHost.personality = text.string
@@ -292,13 +292,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func editKeys() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "OpenAI API Key"
-        alert.informativeText = "Saved privately on this Mac (not in the project files). The phone only ever gets short-lived keys."
+        alert.messageText = tr("OpenAI API Key", "Ключ OpenAI API")
+        alert.informativeText = tr("Saved privately on this Mac (not in the project files). The phone only ever gets short-lived keys.", "Зберігається приватно на цьому Mac (не у файлах проєкту). Телефон отримує лише короткочасні ключі.")
         let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 360, height: 24))
-        field.placeholderString = Keychain.get(.openai) == nil ? "sk-…" : "Key saved. Paste a new one to replace it."
+        field.placeholderString = Keychain.get(.openai) == nil ? "sk-…" : tr("Key saved. Paste a new one to replace it.", "Ключ збережено. Встав новий, щоб замінити.")
         alert.accessoryView = field
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: tr("Save", "Зберегти"))
+        alert.addButton(withTitle: tr("Cancel", "Скасувати"))
         alert.window.initialFirstResponder = field
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         let key = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -315,21 +315,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
 
         let phones = server.phoneNames
-        let status = NSMenuItem(title: phones.isEmpty ? "Waiting for the phone app…" : "Phone connected: \(phones.joined(separator: ", "))",
+        let status = NSMenuItem(title: phones.isEmpty ? tr("Waiting for the phone app…", "Чекаю на застосунок на телефоні…") : tr("Phone connected: ", "Телефон підключено: ") + phones.joined(separator: ", "),
                                 action: nil, keyEquivalent: "")
         status.isEnabled = false
         menu.addItem(status)
-        menu.addItem(item("Pair iPhone (QR)…", #selector(pairPhone)))
+        menu.addItem(item(tr("Pair iPhone (QR)…", "Підключити iPhone (QR)…"), #selector(pairPhone)))
         if let session = focus.current, session.status != .ended {
-            let title = NSMenuItem(title: "Focus: \(session.task) · \(FocusSession.clock(session.remaining))", action: nil, keyEquivalent: "")
+            let title = NSMenuItem(title: tr("Focus: ", "Фокус: ") + "\(session.task) · \(FocusSession.clock(session.remaining))", action: nil, keyEquivalent: "")
             title.isEnabled = false; menu.addItem(title)
-            menu.addItem(item(session.status == .running ? "Pause Focus" : "Resume Focus", session.status == .running ? #selector(pauseFocus) : #selector(resumeFocus)))
-            menu.addItem(item("End Focus", #selector(endFocus)))
+            menu.addItem(item(session.status == .running ? tr("Pause Focus", "Пауза фокусу") : tr("Resume Focus", "Продовжити фокус"), session.status == .running ? #selector(pauseFocus) : #selector(resumeFocus)))
+            menu.addItem(item(tr("End Focus", "Завершити фокус"), #selector(endFocus)))
         }
-        let developer = item("Developer Mode (4× · checks every 10s)", #selector(toggleFocusDeveloperMode))
+        let developer = item(tr("Developer Mode (4× · checks every 10s)", "Режим розробника (×4 · перевірка кожні 10 с)"), #selector(toggleFocusDeveloperMode))
         developer.state = focus.developerMode ? .on : .off
         menu.addItem(developer)
-        let wake = NSMenuItem(title: host.awake ? "Go to Sleep (Follow Mode)" : "Wake Up and Talk",
+        let wake = NSMenuItem(title: host.awake ? tr("Go to Sleep (Follow Mode)", "Заснути (режим стеження)") : tr("Wake Up and Talk", "Прокинутись і говорити"),
                               action: #selector(toggleAwake), keyEquivalent: " ")
         wake.keyEquivalentModifierMask = [.option]
         wake.target = self
@@ -337,22 +337,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(wake)
         menu.addItem(.separator())
 
-        let control = item("Let Him Use the Computer", #selector(toggleComputerControl))
+        let control = item(tr("Let Him Use the Computer", "Дозволити користуватись комп'ютером"), #selector(toggleComputerControl))
         control.state = settings.computerControl ? .on : .off
         menu.addItem(control)
         if settings.computerControl && !ComputerControl.isTrusted {
-            menu.addItem(item("Allow Clicking and Typing (Accessibility)…", #selector(allowComputerControl)))
+            menu.addItem(item(tr("Allow Clicking and Typing (Accessibility)…", "Дозволити клацати й друкувати (Універсальний доступ)…"), #selector(allowComputerControl)))
         }
-        menu.addItem(item("Stop Him", #selector(stopActions), key: "s"))
+        menu.addItem(item(tr("Stop Him", "Зупинити його"), #selector(stopActions), key: "s"))
         menu.addItem(.separator())
 
-        let point = item("Point Here", #selector(pointHere), key: "p")
+        let point = item(tr("Point Here", "Вказати сюди"), #selector(pointHere), key: "p")
         menu.addItem(point)
-        let follow = item("Eyes Follow My Mouse", #selector(toggleFollow), key: "f")
+        let follow = item(tr("Eyes Follow My Mouse", "Очі стежать за мишкою"), #selector(toggleFollow), key: "f")
         follow.state = settings.followMouse ? .on : .off
         menu.addItem(follow)
-        menu.addItem(item("Stop Pointing", #selector(dock), key: "d"))
-        menu.addItem(item("Talk Test", #selector(talkTest), key: "t"))
+        menu.addItem(item(tr("Stop Pointing", "Припинити вказувати"), #selector(dock), key: "d"))
+        menu.addItem(item(tr("Talk Test", "Перевірка голосу"), #selector(talkTest), key: "t"))
         menu.addItem(.separator())
 
         let moodMenu = NSMenu()
@@ -362,25 +362,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             m.state = settings.mood == mood ? .on : .off
             moodMenu.addItem(m)
         }
-        menu.addItem(submenu("Mood", moodMenu))
+        menu.addItem(submenu(tr("Mood", "Настрій"), moodMenu))
 
         let sizeMenu = NSMenu()
-        for (name, size) in [("Small", 48), ("Medium", 72), ("Large", 96), ("Huge", 120)] {
+        for (name, size) in [(tr("Small", "Малий"), 48), (tr("Medium", "Середній"), 72), (tr("Large", "Великий"), 96), (tr("Huge", "Величезний"), 120)] {
             let s = item("\(name) (\(size) pt)", #selector(setSize(_:)))
             s.tag = size
             s.state = Int(settings.cursorSize) == size ? .on : .off
             sizeMenu.addItem(s)
         }
-        menu.addItem(submenu("Cursor Size", sizeMenu))
+        menu.addItem(submenu(tr("Cursor Size", "Розмір курсора"), sizeMenu))
 
         let phoneMenu = NSMenu()
-        for (name, pos) in [("Left", 20), ("Center", 50), ("Right", 80)] {
+        for (name, pos) in [(tr("Left", "Ліворуч"), 20), (tr("Center", "Посередині"), 50), (tr("Right", "Праворуч"), 80)] {
             let p = item(name, #selector(setPhonePosition(_:)))
             p.tag = pos
             p.state = Int((settings.phonePosition * 100).rounded()) == pos ? .on : .off
             phoneMenu.addItem(p)
         }
-        menu.addItem(submenu("Phone Sits Under", phoneMenu))
+        menu.addItem(submenu(tr("Phone Sits Under", "Телефон стоїть під"), phoneMenu))
 
         if CodexController.isInstalled {
             let codexMenu = NSMenu()
@@ -390,13 +390,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 codexMenu.addItem(j)
             }
             if !codex.jobs.isEmpty { codexMenu.addItem(.separator()) }
-            codexMenu.addItem(item("Add Project Folder…", #selector(addCodexFolder)))
-            codexMenu.addItem(item("Open Codex", #selector(openCodex)))
-            menu.addItem(submenu(codex.approvals.isEmpty ? "Codex" : "Codex (waiting for you)", codexMenu))
+            codexMenu.addItem(item(tr("Add Project Folder…", "Додати теку проєкту…"), #selector(addCodexFolder)))
+            codexMenu.addItem(item(tr("Open Codex", "Відкрити Codex"), #selector(openCodex)))
+            menu.addItem(submenu(codex.approvals.isEmpty ? "Codex" : tr("Codex (waiting for you)", "Codex (чекає на тебе)"), codexMenu))
         }
-        menu.addItem(item("Open Meeting Notes", #selector(openNotes)))
-        menu.addItem(item("Personality…", #selector(editPersonality)))
-        menu.addItem(item("OpenAI Key…", #selector(editKeys)))
+        menu.addItem(item(tr("Open Meeting Notes", "Відкрити нотатки зустрічей"), #selector(openNotes)))
+        menu.addItem(item(tr("Personality…", "Характер…"), #selector(editPersonality)))
+        menu.addItem(item(tr("OpenAI Key…", "Ключ OpenAI…"), #selector(editKeys)))
+        menu.addItem(languageMenu())
         menu.addItem(.separator())
 
         let trailMenu = NSMenu()
@@ -406,14 +407,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             t.state = settings.trail == trail ? .on : .off
             trailMenu.addItem(t)
         }
-        menu.addItem(submenu("Pointer Trail", trailMenu))
+        menu.addItem(submenu(tr("Pointer Trail", "Слід вказівника"), trailMenu))
 
-        let show = item("Show Cursor", #selector(toggleShow), key: "h")
+        let show = item(tr("Show Cursor", "Показувати курсор"), #selector(toggleShow), key: "h")
         show.state = settings.showCursor ? .on : .off
         menu.addItem(show)
 
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Bluey", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: tr("Quit Bluey", "Вийти з Bluey"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+    }
+
+    /// "Language / Мова" submenu: follow the system, or force English / Ukrainian.
+    private func languageMenu() -> NSMenuItem {
+        let menu = NSMenu()
+        let auto = item(tr("Follow System", "Як у системі") + " (\(BlueyLanguage.system.title))", #selector(setLanguage(_:)))
+        auto.state = BlueyLanguage.chosen == nil ? .on : .off
+        menu.addItem(auto)
+        for language in BlueyLanguage.allCases {
+            let entry = item(language.title, #selector(setLanguage(_:)))
+            entry.representedObject = language.rawValue
+            entry.state = BlueyLanguage.chosen == language ? .on : .off
+            menu.addItem(entry)
+        }
+        return submenu("Language / Мова", menu)
+    }
+
+    @objc private func setLanguage(_ sender: NSMenuItem) {
+        BlueyLanguage.chosen = (sender.representedObject as? String).flatMap(BlueyLanguage.init(rawValue:))
+        restartIfAwake()  // the new language reaches the model on the next wake-up
     }
 
     /// Menu item that shows its global shortcut (⌃⌥ + key) when given one.

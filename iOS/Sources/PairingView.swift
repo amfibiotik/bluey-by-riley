@@ -10,22 +10,22 @@ struct PairingView: View {
                 .frame(width: 220, height: 190)
 
             VStack(alignment: .leading, spacing: 14) {
-                Text("Your little focus friend")
+                Text(tr("Your little focus friend", "Твій маленький друг для фокусу"))
                     .font(.fredoka(32))
                     .foregroundStyle(Color(hex: 0xF4F1FA))
-                Text("Open Bluey's Mac menu > Pair iPhone (QR). Scan once, then we'll reconnect securely on the same Wi-Fi.")
+                Text(tr("Open Bluey's Mac menu > Pair iPhone (QR). Scan once, then we'll reconnect securely on the same Wi-Fi.", "Відкрий меню Bluey на Mac > «Підключити iPhone (QR)». Скануй один раз, далі ми безпечно підключатимемось автоматично в тій самій мережі Wi-Fi."))
                     .font(.plexSans(16))
                     .foregroundStyle(Color(hex: Palette.inkSoft))
                     .frame(maxWidth: 380, alignment: .leading)
                 HStack(spacing: 10) {
                     ProgressView().tint(Color(hex: Palette.berry1))
-                    Text("Looking for your Mac")
+                    Text(tr("Looking for your Mac", "Шукаю твій Mac"))
                         .font(.plexMono(13))
                         .foregroundStyle(Color(hex: Palette.inkSoft))
                 }
                 .padding(.top, 4)
                 Button(action: onPlay) {
-                    Text("Pair Mac (scan QR)")
+                    Text(tr("Pair Mac (scan QR)", "Підключити Mac (сканувати QR)"))
                         .font(.plexSans(15).weight(.semibold))
                         .foregroundStyle(Color(hex: 0xF4F1FA))
                         .padding(.horizontal, 18)

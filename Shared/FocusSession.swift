@@ -41,7 +41,7 @@ public struct FocusSession: Codable, Identifiable, Equatable, Sendable {
     public var startedAt = Date()
     public var elapsed: Double = 0
     public var status: Status = .running
-    public var detail = "First check in 30 seconds"
+    public var detail = tr("First check in 30 seconds", "Перша перевірка за 30 секунд")
     public var checks: [FocusCheck] = []
     // Optional fields preserve decoding of existing session history.
     public var developerMode: Bool?
@@ -56,7 +56,7 @@ public struct FocusSession: Codable, Identifiable, Equatable, Sendable {
     public init(task: String, duration: Double = 1800, developerMode: Bool = false) {
         self.task = String(task.prefix(500)); self.duration = min(14400, max(60, duration))
         self.developerMode = developerMode; self.usedDeveloperMode = developerMode; self.realElapsed = 0
-        self.detail = "First check in \(Int(checkInterval)) seconds"
+        self.detail = tr("First check in \(Int(checkInterval)) seconds", "Перша перевірка за \(Int(checkInterval)) с")
     }
     public static func clock(_ seconds: Double) -> String {
         let n = max(0, Int(seconds.rounded(.up)))
@@ -66,7 +66,7 @@ public struct FocusSession: Codable, Identifiable, Equatable, Sendable {
         guard status == .running, seconds.isFinite, seconds > 0 else { return }
         realElapsed = realActiveElapsed + min(seconds, remaining / clockRate)
         elapsed = min(duration, elapsed + seconds * clockRate)
-        if elapsed >= duration { status = .ended; detail = "Time's up. Lovely bit of focus." }
+        if elapsed >= duration { status = .ended; detail = tr("Time's up. Lovely bit of focus.", "Час вийшов. Файно сфокусувались.") }
     }
     public mutating func pause(_ reason: String) {
         guard status == .running else { return }
@@ -75,13 +75,13 @@ public struct FocusSession: Codable, Identifiable, Equatable, Sendable {
     }
     public mutating func resume() {
         guard status == .paused else { return }
-        status = .running; detail = "Resumed. Next check in \(Int(checkInterval)) seconds"
+        status = .running; detail = tr("Resumed. Next check in \(Int(checkInterval)) seconds", "Відновлено. Наступна перевірка за \(Int(checkInterval)) с")
     }
     public mutating func setDeveloperMode(_ enabled: Bool) {
         developerMode = enabled
         if enabled { usedDeveloperMode = true }
     }
-    public mutating func end() { status = .ended; detail = "Session finished" }
+    public mutating func end() { status = .ended; detail = tr("Session finished", "Сесію завершено") }
 }
 
 public struct FocusSync: Codable, Sendable {

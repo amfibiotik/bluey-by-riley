@@ -11,7 +11,17 @@ public enum GooglyService {
 public enum Mood: String, Codable, CaseIterable, Sendable {
     case listening, resting, thinking, talking, pointing, happy, sleepy
 
-    public var title: String { rawValue.capitalized }
+    public var title: String {
+        switch self {
+        case .listening: return tr("Listening", "Слухає")
+        case .resting: return tr("Resting", "Відпочиває")
+        case .thinking: return tr("Thinking", "Думає")
+        case .talking: return tr("Talking", "Говорить")
+        case .pointing: return tr("Pointing", "Вказує")
+        case .happy: return tr("Happy", "Радий")
+        case .sleepy: return tr("Sleepy", "Сонний")
+        }
+    }
 }
 
 /// What the phone should show right now.

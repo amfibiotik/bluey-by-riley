@@ -38,7 +38,7 @@ struct BlueySession: Codable, Identifiable, Equatable {
     var summary: String {
         let first = entries.first { $0.kind == .asked && !$0.text.isEmpty }
             ?? displayEntries.first { $0.kind == .transcript || $0.kind == .heard }
-        return first?.text ?? "Nothing said yet"
+        return first?.text ?? tr("Nothing said yet", "Ще нічого не сказано")
     }
 
     var duration: TimeInterval { (ended ?? Date()).timeIntervalSince(started) }

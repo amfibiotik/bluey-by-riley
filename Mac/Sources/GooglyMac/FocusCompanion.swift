@@ -62,18 +62,18 @@ final class FocusCompanion {
         self.timer = timer
         for name in ["com.apple.screenIsLocked"] {
             observers.append(DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name(name), object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor in self?.pause("Mac locked. Resume when you're ready.") }
+                Task { @MainActor in self?.pause(tr("Mac locked. Resume when you're ready.", "Mac заблоковано. Відновлюй, коли будеш готовий.")) }
             })
         }
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
             observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor in self?.pause("Mac sleeping or locked. Resume when you're ready.") }
+                Task { @MainActor in self?.pause(tr("Mac sleeping or locked. Resume when you're ready.", "Mac спить або заблокований. Відновлюй, коли будеш готовий.")) }
             })
         }
     }
-    func shutdown() { pause("Bluey closed"); timer?.invalidate(); cancel() }
+    func shutdown() { pause(tr("Bluey closed", "Bluey закрито")); timer?.invalidate(); cancel() }
     func heartbeat() { lastPing = now(); connected = true; if !monitoring { publish() } }
-    func disconnected() { connected = false; pause("Phone disconnected. Reconnect, then resume.") }
+    func disconnected() { connected = false; pause(tr("Phone disconnected. Reconnect, then resume.", "Телефон відключився. Підключись знову й відновлюй.")) }
     func sync() { publish() }
     var monitoring: Bool { current?.status == .running }
     var hasSession: Bool { current != nil && current?.status != .ended }
@@ -85,7 +85,7 @@ final class FocusCompanion {
         developerMode = enabled; settings?.set(enabled, forKey: "focusDeveloperMode")
         if hasSession {
             current?.setDeveloperMode(enabled)
-            current?.detail = enabled ? "Developer Mode: clock 4×, next check in 10 seconds" : "Normal speed. Next check in 30 seconds"
+            current?.detail = enabled ? tr("Developer Mode: clock 4×, next check in 10 seconds", "Режим розробника: годинник ×4, наступна перевірка за 10 с") : tr("Normal speed. Next check in 30 seconds", "Звичайна швидкість. Наступна перевірка за 30 с")
         }
         policy = FocusNudgePolicy(maximumGap: (current?.observationDuration ?? (enabled ? 40 : 30)) * 1.5,
                                   developerMode: enabled)
@@ -109,7 +109,7 @@ final class FocusCompanion {
         publish(); persist()
         return "Focus started: \(task), \(Int(min(240, max(1, minutes)))) minutes."
     }
-    @discardableResult func pause(_ reason: String = "Paused") -> String {
+    @discardableResult func pause(_ reason: String = tr("Paused", "Пауза")) -> String {
         guard current?.status == .running else { return "Focus is already paused or ended." }
         advanceClock(); current?.pause(reason); cancel(); policy.reset(); publish(); persist()
         return "Focus paused."
@@ -128,7 +128,7 @@ final class FocusCompanion {
     }
     @discardableResult func testNudge() -> String {
         guard developerMode, freshConnection else { return "Enable Developer Mode and connect the phone first." }
-        onNudge?("Oi, back to the mission. This is your test nudge.", nil)
+        onNudge?(tr("Oi, back to the mission. This is your test nudge.", "Агов, повертайся до справи. Це тестове нагадування."), nil)
         return "Test nudge sent to the Mac and phone."
     }
     private var freshConnection: Bool { connected && now() - lastPing < 5 }
@@ -143,8 +143,8 @@ final class FocusCompanion {
     }
     func tick() {
         guard monitoring else { return }
-        guard freshConnection else { pause("Phone disconnected. Reconnect, then resume."); return }
-        guard unlocked else { pause("Mac locked. Resume when ready."); return }
+        guard freshConnection else { pause(tr("Phone disconnected. Reconnect, then resume.", "Телефон відключився. Підключись знову й відновлюй.")); return }
+        guard unlocked else { pause(tr("Mac locked. Resume when ready.", "Mac заблоковано. Відновлюй, коли будеш готовий.")); return }
         guard permission() else { pause("Screen Recording permission lost. Enable it, then reopen Bluey."); return }
         if now() - lastTick > 3 { pause("Mac was inactive. Resume when ready."); return }
         advanceClock()
@@ -174,15 +174,15 @@ final class FocusCompanion {
                                        probabilities: age <= 20 ? answer.probabilities : nil,
                                        sampleDuration: session.observationDuration)
                 let shouldNudge = self.policy.observe(check, age: age)
-                self.current?.detail = age > 20 ? "Last check was stale; skipped" : answer.activity == .uncertain ? "Not enough context to judge" : answer.activity == .onTask ? "On task" : "Off task · checking again before nudging"
+                self.current?.detail = age > 20 ? tr("Last check was stale; skipped", "Остання перевірка застаріла; пропущено") : answer.activity == .uncertain ? tr("Not enough context to judge", "Замало контексту для оцінки") : answer.activity == .onTask ? tr("On task", "За справою") : tr("Off task · checking again before nudging", "Відволікання · перевіряю ще раз перед нагадуванням")
                 self.current?.checks.append(check)
                 self.publish(); self.persist()
                 if shouldNudge {
                     // Fresh evidence, separate API. Its output can only show a bubble or point.
                     guard self.allowed else { return }
-                    var nudge = FocusAPI.Nudge(message: "Are you sure you're on task right now?", target: nil)
+                    var nudge = FocusAPI.Nudge(message: tr("Are you sure you're on task right now?", "Ти точно зараз займаєшся своєю справою?"), target: nil)
                     var target: Target?
-                    self.current?.detail = "Off task · preparing a gentle nudge"; self.publish()
+                    self.current?.detail = tr("Off task · preparing a gentle nudge", "Відволікання · готую м'яке нагадування"); self.publish()
                     do {
                         let fresh = try await self.capture()
                         guard self.allowed, self.generation == token, !Task.isCancelled else { return }
@@ -199,11 +199,11 @@ final class FocusCompanion {
                         }
                     } catch {
                         // A failed extra capture or wording request must still deliver the fallback bubble.
-                        self.current?.detail = "Off task · using a gentle reminder"
+                        self.current?.detail = tr("Off task · using a gentle reminder", "Відволікання · використовую запасне нагадування")
                     }
                     guard self.allowed, self.generation == token, !Task.isCancelled else { return }
                     self.onNudge?(nudge.message, target)
-                    self.current?.detail = "Off task · Bluey nudged you"
+                    self.current?.detail = tr("Off task · Bluey nudged you", "Відволікання · Bluey нагадав тобі")
                     check.nudged = true
                     if let index = self.current?.checks.firstIndex(where: { $0.id == check.id }) { self.current?.checks[index] = check }
                     self.publish(); self.persist()
@@ -213,7 +213,7 @@ final class FocusCompanion {
                 self.policy.reset()
                 self.current?.checks.append(FocusCheck(elapsed: session.elapsed, activity: .unavailable,
                                                       sampleDuration: session.observationDuration))
-                self.current?.detail = "Check unavailable: \(error.localizedDescription.prefix(180))"
+                self.current?.detail = tr("Check unavailable: ", "Перевірка недоступна: ") + String(error.localizedDescription.prefix(180))
                 self.publish(); self.persist()
                 // Authentication/permission issues need intervention, not repeated paid calls.
                 if (error as? FocusAPI.Failure) != nil { self.pause(self.current?.detail ?? "OpenAI unavailable") }
@@ -231,7 +231,7 @@ final class FocusCompanion {
     private func persist() {
         var saved = history
         if var session = current, session.status != .ended {
-            session.status = .ended; session.detail = "App closed or restarted"
+            session.status = .ended; session.detail = tr("App closed or restarted", "Застосунок закрито або перезапущено")
             saved.removeAll { $0.id == session.id }; saved.insert(session, at: 0)
         }
         if let data = try? JSONEncoder().encode(Array(saved.prefix(30))) {

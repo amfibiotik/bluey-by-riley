@@ -47,7 +47,7 @@ struct RootView: View {
                     .background(Circle().fill(Color.white.opacity(0.06)).frame(width: 34, height: 34))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Open Bluey")
+            .accessibilityLabel(tr("Open Bluey", "Відкрити Bluey"))
             .padding(.top, 10)
             .padding(.trailing, 62)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -128,7 +128,7 @@ struct RootView: View {
         }
         live.runTool = { [link] name, arguments, done in
             link.request(Packet(command: "tool", tool: name, text: arguments)) { reply in
-                done(reply?.text ?? "The Mac didn't answer.", reply?.image)
+                done(reply?.text ?? tr("The Mac didn't answer.", "Mac не відповів."), reply?.image)
             }
         }
         live.onSessionStart = { [store] in
@@ -180,7 +180,7 @@ struct RootView: View {
             case "codexNote": live.codexNote(text ?? "")
             case "codexChirp": live.chirpAlone()
             case "focusChirp":
-                focus.receivedNudge(text ?? "Are you sure you're on task right now?")
+                focus.receivedNudge(text ?? tr("Are you sure you're on task right now?", "Ти точно зараз займаєшся своєю справою?"))
                 live.focusChirp()
             default: break
             }

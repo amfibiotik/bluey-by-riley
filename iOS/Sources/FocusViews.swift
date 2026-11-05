@@ -10,11 +10,11 @@ struct FocusFaceHUD: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(focus.current.flatMap { $0.status == .ended ? nil : $0.task } ?? "What's the mission?")
+                    Text(focus.current.flatMap { $0.status == .ended ? nil : $0.task } ?? tr("What's the mission?", "Яка сьогодні місія?"))
                         .font(.fredoka(22)).lineLimit(2)
                     Text(status).font(.plexMono(10)).foregroundStyle(.white.opacity(0.65))
                     if focus.developerMode {
-                        Text("Developer Mode · 4× clock · checks every 10s")
+                        Text(tr("Developer Mode · 4× clock · checks every 10s", "Режим розробника · годинник ×4 · перевірка кожні 10 с"))
                             .font(.plexMono(10)).foregroundStyle(.white.opacity(0.8))
                     }
                     if !feedback.isEmpty {
@@ -30,16 +30,16 @@ struct FocusFaceHUD: View {
             HStack(alignment: .bottom, spacing: 12) {
                 HStack(spacing: 2) {
                     if !link.connected {
-                        icon("qrcode.viewfinder", label: "Pair Mac", action: pair)
+                        icon("qrcode.viewfinder", label: tr("Pair Mac", "Підключити Mac"), action: pair)
                     } else if let session = focus.current, session.status != .ended {
                         icon(session.status == .running ? "pause.fill" : "play.fill",
-                             label: session.status == .running ? "Pause focus" : "Resume focus") {
+                             label: session.status == .running ? tr("Pause focus", "Пауза фокусу") : tr("Resume focus", "Продовжити фокус")) {
                             focus.command(session.status == .running ? "focusPause" : "focusResume")
                         }.disabled(!focus.fresh)
-                        icon("stop.fill", label: "End focus") { focus.command("focusEnd") }
+                        icon("stop.fill", label: tr("End focus", "Завершити фокус")) { focus.command("focusEnd") }
                             .disabled(!focus.fresh)
                     }
-                    icon("scope", label: "Focus sessions", action: open)
+                    icon("scope", label: tr("Focus sessions", "Сесії фокусу"), action: open)
                     Image(systemName: voiceIcon)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(live.state == .asleep ? .white.opacity(0.35) : .white)
@@ -55,7 +55,7 @@ struct FocusFaceHUD: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.65)
-                    .accessibilityLabel("Time remaining")
+                    .accessibilityLabel(tr("Time remaining", "Залишилось часу"))
                     .accessibilityValue(FocusSession.clock(countdown))
             }
         }
@@ -90,25 +90,25 @@ struct FocusFaceHUD: View {
     }
     private var voiceStatus: String {
         switch live.state {
-        case .asleep: return "Hold Bluey to speak"
-        case .waking: return "Voice connecting"
-        case .listening: return "Listening. Hold Bluey to ask"
-        case .asking: return "Recording your request"
-        case .thinking: return "Thinking"
-        case .speaking: return "Replying"
+        case .asleep: return tr("Hold Bluey to speak", "Потримай Bluey, щоб говорити")
+        case .waking: return tr("Voice connecting", "Підключаю голос")
+        case .listening: return tr("Listening. Hold Bluey to ask", "Слухаю. Потримай Bluey, щоб запитати")
+        case .asking: return tr("Recording your request", "Записую твій запит")
+        case .thinking: return tr("Thinking", "Думаю")
+        case .speaking: return tr("Replying", "Відповідаю")
         }
     }
     private var status: String {
-        guard link.connected else { return "Pair your Mac to focus together" }
-        guard let session = focus.current, session.status != .ended else { return "Hold Bluey and describe a task" }
-        guard focus.fresh else { return "Connection lost · monitoring will pause" }
-        if session.status == .paused { return "Paused" }
-        guard let check = session.checks.last(where: { $0.activity != .paused }) else { return "Focusing together" }
+        guard link.connected else { return tr("Pair your Mac to focus together", "Підключи Mac, щоб фокусуватись разом") }
+        guard let session = focus.current, session.status != .ended else { return tr("Hold Bluey and describe a task", "Потримай Bluey і опиши завдання") }
+        guard focus.fresh else { return tr("Connection lost · monitoring will pause", "Зв'язок втрачено · стеження призупиниться") }
+        if session.status == .paused { return tr("Paused", "Пауза") }
+        guard let check = session.checks.last(where: { $0.activity != .paused }) else { return tr("Focusing together", "Фокусуємось разом") }
         switch check.activity {
-        case .offTask: return "Off task · \(check.probability.focusPercent) estimate\(check.nudged ? " · nudged" : "")"
-        case .onTask: return "On task"
-        case .uncertain: return "Not sure yet · checking again"
-        default: return "Last check unavailable · trying again"
+        case .offTask: return tr("Off task · \(check.probability.focusPercent) estimate\(check.nudged ? " · nudged" : "")", "Відволікання · оцінка \(check.probability.focusPercent)\(check.nudged ? " · нагадав" : "")")
+        case .onTask: return tr("On task", "За справою")
+        case .uncertain: return tr("Not sure yet · checking again", "Ще не певен · перевіряю знову")
+        default: return tr("Last check unavailable · trying again", "Остання перевірка недоступна · пробую знову")
         }
     }
 }
@@ -124,15 +124,15 @@ struct FocusDashboard: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Toggle("Developer Mode", isOn: Binding(
+                        Toggle(tr("Developer Mode", "Режим розробника"), isOn: Binding(
                             get: { focus.developerMode },
                             set: { focus.command("focusDeveloperMode", developerMode: $0) }
                         )).disabled(!link.connected || !focus.fresh)
                             .accessibilityIdentifier("focusDeveloperMode")
-                        Text("4× clock and a screen check every 10 real seconds. Repeated off-task checks nudge after about 20–30 real seconds, plus request time. Applies immediately; test sessions are labelled in history.")
+                        Text(tr("4× clock and a screen check every 10 real seconds. Repeated off-task checks nudge after about 20–30 real seconds, plus request time. Applies immediately; test sessions are labelled in history.", "Годинник ×4 і перевірка екрана кожні 10 справжніх секунд. Повторні відволікання викликають нагадування приблизно за 20–30 справжніх секунд плюс час запиту. Діє одразу; тестові сесії позначені в історії."))
                             .font(.plexSans(12)).foregroundStyle(.secondary)
                         if focus.developerMode {
-                            Button("Test a nudge") { focus.command("focusTestNudge") }
+                            Button(tr("Test a nudge", "Перевірити нагадування")) { focus.command("focusTestNudge") }
                                 .buttonStyle(.bordered).disabled(!link.connected || !focus.fresh)
                         }
                     }
@@ -143,39 +143,39 @@ struct FocusDashboard: View {
                     }
                     if let session = focus.current, session.status != .ended {
                         FocusSummary(session: session)
-                        Text(focus.fresh ? session.detail : "Connection lost. Reconnect before resuming.")
+                        Text(focus.fresh ? session.detail : tr("Connection lost. Reconnect before resuming.", "Зв'язок втрачено. Підключись знову, перш ніж продовжувати."))
                             .font(.plexSans(13)).foregroundStyle(.secondary)
                         HStack {
-                            Button(session.status == .running ? "Pause" : "Resume") {
+                            Button(session.status == .running ? tr("Pause", "Пауза") : tr("Resume", "Продовжити")) {
                                 focus.command(session.status == .running ? "focusPause" : "focusResume")
                             }
-                            Button("End focus") { focus.command("focusEnd") }
+                            Button(tr("End focus", "Завершити фокус")) { focus.command("focusEnd") }
                         }.buttonStyle(.bordered).disabled(!link.connected || !focus.fresh)
                     } else {
                         Text("A little company. A little focus.").font(.fredoka(26))
                         Text("Hold Bluey and say what you're working on, or type it here.").font(.plexSans(14))
-                        TextField("What are we working on?", text: $task).textFieldStyle(.roundedBorder)
+                        TextField(tr("What are we working on?", "Над чим працюємо?"), text: $task).textFieldStyle(.roundedBorder)
                             .accessibilityIdentifier("focusTask")
-                        Stepper("\(Int(minutes)) minutes", value: $minutes, in: 1...240, step: 5)
-                        Button("Start focus") { focus.command("focusStart", task: task, minutes: minutes) }
+                        Stepper(tr("\(Int(minutes)) minutes", "\(Int(minutes)) хв"), value: $minutes, in: 1...240, step: 5)
+                        Button(tr("Start focus", "Почати фокус")) { focus.command("focusStart", task: task, minutes: minutes) }
                             .buttonStyle(.borderedProminent).disabled(task.trimmingCharacters(in: .whitespaces).isEmpty || !link.connected)
                             .accessibilityIdentifier("startFocus")
                     }
                     if !focus.message.isEmpty { Text(focus.message).font(.plexSans(13)).foregroundStyle(.secondary) }
-                    Text("While focusing, Bluey sends your main Mac display, task, elapsed time, idle duration and recent check results to OpenAI every \(focus.developerMode ? 10 : 30) real seconds. Brief detours are fine. Stillness isn't distraction.")
+                    Text(tr("While focusing, Bluey sends your main Mac display, task, elapsed time, idle duration and recent check results to OpenAI every \(focus.developerMode ? 10 : 30) real seconds. Brief detours are fine. Stillness isn't distraction.", "Під час фокусу Bluey кожні \(focus.developerMode ? 10 : 30) справжніх секунд надсилає в OpenAI головний екран Mac, завдання, витрачений час, тривалість бездіяльності та останні результати перевірок. Короткі відволікання — це нормально. Нерухомість — не відволікання."))
                         .font(.plexSans(13)).foregroundStyle(.secondary)
-                    Text("Screen Recording is required on Mac; microphone is needed for voice. Screenshots aren't saved by Bluey. Pause, end, lock, sleep or disconnect stops capture. Resume is always manual. OpenAI processing follows your API account's data controls.")
+                    Text(tr("Screen Recording is required on Mac; microphone is needed for voice. Screenshots aren't saved by Bluey. Pause, end, lock, sleep or disconnect stops capture. Resume is always manual. OpenAI processing follows your API account's data controls.", "На Mac потрібен дозвіл на запис екрана; для голосу потрібен мікрофон. Bluey не зберігає знімки екрана. Пауза, завершення, блокування, сон або розрив зв'язку зупиняють захоплення. Продовження завжди ручне. Обробка в OpenAI підпорядковується налаштуванням даних твого API-акаунта."))
                         .font(.plexSans(13)).foregroundStyle(.secondary)
                     Divider()
                     Text("Your focus sessions").font(.fredoka(23))
-                    if focus.history.isEmpty { Text("Your first timeline will appear here when you finish.").foregroundStyle(.secondary) }
+                    if focus.history.isEmpty { Text(tr("Your first timeline will appear here when you finish.", "Твоя перша стрічка з'явиться тут, коли ти завершиш сесію.")).foregroundStyle(.secondary) }
                     ForEach(focus.history) { session in
                         FocusSummary(session: session)
                             .padding(16).background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
                     }
                 }.padding(24)
-            }.background(Color.black).navigationTitle("bluey · focus friend")
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Back to Bluey") { dismiss() } } }
+            }.background(Color.black).navigationTitle(tr("bluey · focus friend", "bluey · друг для фокусу"))
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(tr("Back to Bluey", "Назад до Bluey")) { dismiss() } } }
         }.preferredColorScheme(.dark).tint(Color(hex: Palette.berry2))
     }
 }
@@ -188,20 +188,20 @@ private struct FocusSummary: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(session.task).font(.fredoka(22))
             if session.usedDeveloperMode == true {
-                Text("Developer test · \(FocusSession.clock(session.realActiveElapsed)) real active time · timeline uses focus-clock time")
+                Text(tr("Developer test · \(FocusSession.clock(session.realActiveElapsed)) real active time · timeline uses focus-clock time", "Тест розробника · \(FocusSession.clock(session.realActiveElapsed)) справжнього активного часу · стрічка використовує годинник фокусу"))
                     .font(.plexMono(11)).foregroundStyle(.secondary)
             }
-            Text("\(session.startedAt.formatted(date: .abbreviated, time: .shortened)) · \(FocusSession.clock(session.elapsed)) active")
+            Text(tr("\(session.startedAt.formatted(date: .abbreviated, time: .shortened)) · \(FocusSession.clock(session.elapsed)) active", "\(session.startedAt.formatted(date: .abbreviated, time: .shortened)) · активно \(FocusSession.clock(session.elapsed))"))
                 .font(.plexMono(11)).foregroundStyle(.secondary)
             Button { inspect("all") } label: {
                 FocusTimeline(session: session).frame(height: 40)
-            }.buttonStyle(.plain).accessibilityLabel("Inspect focus checks")
+            }.buttonStyle(.plain).accessibilityLabel(tr("Inspect focus checks", "Переглянути перевірки фокусу"))
             HStack(spacing: 16) {
-                legend("On task", .green, category: "on_task")
-                legend("Off task", Color(hex: 0xEBAC73), category: "off_task")
-                legend("Unknown", .gray, category: "uncertain")
+                legend(tr("On task", "За справою"), .green, category: "on_task")
+                legend(tr("Off task", "Відволікання"), Color(hex: 0xEBAC73), category: "off_task")
+                legend(tr("Unknown", "Невідомо"), .gray, category: "uncertain")
             }.font(.plexSans(11))
-            Text("Tap a category to see probabilities and confidence. Grey also includes unchecked time. Pauses are excluded.")
+            Text(tr("Tap a category to see probabilities and confidence. Grey also includes unchecked time. Pauses are excluded.", "Торкнись категорії, щоб побачити ймовірності й упевненість. Сірий колір також охоплює неперевірений час. Паузи не враховано."))
                 .font(.plexSans(11)).foregroundStyle(.secondary)
         }
         .sheet(item: $inspection) { selection in FocusCheckList(session: session, category: selection.id) }
@@ -213,7 +213,7 @@ private struct FocusSummary: View {
         Button { inspect(category) } label: {
             HStack(spacing: 5) { Rectangle().fill(color).frame(width: 9, height: 9); Text(name) }
                 .frame(minHeight: 44).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityLabel("Inspect \(name) confidence")
+        }.buttonStyle(.plain).accessibilityLabel(tr("Inspect \(name) confidence", "Переглянути упевненість: \(name)"))
     }
 }
 
@@ -233,18 +233,18 @@ private struct FocusCheckList: View {
         NavigationStack {
             List {
                 Section {
-                    Picker("Show checks", selection: $category) {
-                        Text("All").tag("all")
-                        Text("On task").tag("on_task")
-                        Text("Off task").tag("off_task")
-                        Text("Unknown").tag("uncertain")
+                    Picker(tr("Show checks", "Показати перевірки"), selection: $category) {
+                        Text(tr("All", "Усі")).tag("all")
+                        Text(tr("On task", "За справою")).tag("on_task")
+                        Text(tr("Off task", "Відволікання")).tag("off_task")
+                        Text(tr("Unknown", "Невідомо")).tag("uncertain")
                     }.pickerStyle(.segmented)
-                    Text("Each check is a periodic observation. Developer Mode checks every 10 real seconds with a 4× clock. Category probabilities and overall decision confidence are separate model estimates, not guarantees.")
+                    Text(tr("Each check is a periodic observation. Developer Mode checks every 10 real seconds with a 4× clock. Category probabilities and overall decision confidence are separate model estimates, not guarantees.", "Кожна перевірка — це періодичне спостереження. У режимі розробника перевірки йдуть кожні 10 справжніх секунд при годиннику ×4. Ймовірності категорій і загальна впевненість рішення — це окремі оцінки моделі, а не гарантії."))
                         .font(.plexSans(13)).foregroundStyle(.secondary)
                 }
-                Section("Latest checks first") {
+                Section(tr("Latest checks first", "Спочатку найновіші перевірки")) {
                     if checks.isEmpty {
-                        Text("No checks recorded in this category yet. Unchecked time has no confidence estimate.")
+                        Text(tr("No checks recorded in this category yet. Unchecked time has no confidence estimate.", "У цій категорії ще немає перевірок. Для неперевіреного часу немає оцінки впевненості."))
                             .foregroundStyle(.secondary)
                     }
                     ForEach(checks) { check in
@@ -258,21 +258,21 @@ private struct FocusCheckList: View {
                                     Text(FocusSession.clock(check.elapsed)).font(.plexMono(12))
                                 }
                                 if let estimate = check.estimate(for: check.activity) {
-                                    Text("Category probability \(estimate.focusPercent) · confidence \(check.confidence.focusPercent)")
+                                    Text(tr("Category probability \(estimate.focusPercent) · confidence \(check.confidence.focusPercent)", "Ймовірність категорії \(estimate.focusPercent) · упевненість \(check.confidence.focusPercent)"))
                                         .font(.plexSans(12)).foregroundStyle(.secondary)
                                 } else if check.activity == .unavailable {
-                                    Text("Check unavailable or stale · no valid estimate")
+                                    Text(tr("Check unavailable or stale · no valid estimate", "Перевірка недоступна або застаріла · немає дійсної оцінки"))
                                         .font(.plexSans(12)).foregroundStyle(.secondary)
                                 } else {
-                                    Text("Category probability not saved · confidence \(check.confidence.focusPercent)")
+                                    Text(tr("Category probability not saved · confidence \(check.confidence.focusPercent)", "Ймовірність категорії не збережено · упевненість \(check.confidence.focusPercent)"))
                                         .font(.plexSans(12)).foregroundStyle(.secondary)
                                 }
                             }.padding(.vertical, 4)
                         }
                     }
                 }
-            }.navigationTitle("Focus checks")
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+            }.navigationTitle(tr("Focus checks", "Перевірки фокусу"))
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(tr("Done", "Готово")) { dismiss() } } }
         }.preferredColorScheme(.dark)
     }
 }
@@ -282,40 +282,40 @@ private struct FocusCheckDetail: View {
     var body: some View {
         List {
             Section {
-                LabeledContent("Observation", value: check.activity.focusName)
-                LabeledContent("Active session time", value: FocusSession.clock(check.elapsed))
+                LabeledContent(tr("Observation", "Спостереження"), value: check.activity.focusName)
+                LabeledContent(tr("Active session time", "Активний час сесії"), value: FocusSession.clock(check.elapsed))
             }
             if check.activity == .unavailable {
-                Text("This check failed or arrived too late. It has no valid confidence estimate and does not count toward a nudge.")
+                Text(tr("This check failed or arrived too late. It has no valid confidence estimate and does not count toward a nudge.", "Ця перевірка не вдалася або прийшла запізно. Вона не має дійсної оцінки впевненості й не враховується для нагадування."))
             } else {
-                Section("Category probabilities") {
+                Section(tr("Category probabilities", "Ймовірності категорій")) {
                     ForEach([FocusActivity.onTask, .offTask, .uncertain], id: \.rawValue) { category in
-                        LabeledContent(category.focusName, value: check.estimate(for: category)?.focusPercent ?? "Not saved")
+                        LabeledContent(category.focusName, value: check.estimate(for: category)?.focusPercent ?? tr("Not saved", "Не збережено"))
                     }
                 }
-                Section("Decision confidence") {
-                    LabeledContent("Overall confidence", value: check.confidence.focusPercent)
-                    Text("Confidence is reported separately by the API. It is not the probability of a particular category.")
+                Section(tr("Decision confidence", "Упевненість рішення")) {
+                    LabeledContent(tr("Overall confidence", "Загальна впевненість"), value: check.confidence.focusPercent)
+                    Text(tr("Confidence is reported separately by the API. It is not the probability of a particular category.", "Упевненість повертається API окремо. Це не ймовірність конкретної категорії."))
                         .font(.plexSans(13)).foregroundStyle(.secondary)
                 }
                 if check.probabilities == nil {
-                    Text("This older check saved only the Off task probability and overall confidence. The other probabilities weren't saved.")
+                    Text(tr("This older check saved only the Off task probability and overall confidence. The other probabilities weren't saved.", "Ця старіша перевірка зберегла лише ймовірність відволікання й загальну впевненість. Інші ймовірності не збережено."))
                         .foregroundStyle(.secondary)
                 }
-                if check.nudged { Label("Bluey gave a gentle nudge after this check", systemImage: "bubble.left") }
+                if check.nudged { Label(tr("Bluey gave a gentle nudge after this check", "Після цієї перевірки Bluey м'яко нагадав"), systemImage: "bubble.left") }
             }
-        }.navigationTitle("Check details")
+        }.navigationTitle(tr("Check details", "Деталі перевірки"))
     }
 }
 
 private extension FocusActivity {
     var focusName: String {
         switch self {
-        case .onTask: return "On task"
-        case .offTask: return "Off task"
-        case .uncertain: return "Unknown"
-        case .unavailable: return "Unavailable"
-        case .paused: return "Paused"
+        case .onTask: return tr("On task", "За справою")
+        case .offTask: return tr("Off task", "Відволікання")
+        case .uncertain: return tr("Unknown", "Невідомо")
+        case .unavailable: return tr("Unavailable", "Недоступно")
+        case .paused: return tr("Paused", "Пауза")
         }
     }
 }
@@ -338,6 +338,6 @@ struct FocusTimeline: View {
                 context.fill(Path(rect), with: .color(check.activity == .onTask ? .green : Color(hex: 0xEBAC73)))
             }
         }.overlay(Rectangle().stroke(.white.opacity(0.3), lineWidth: 1))
-            .accessibilityLabel("Focus timeline: green on task, peach off task, grey unknown")
+            .accessibilityLabel(tr("Focus timeline: green on task, peach off task, grey unknown", "Стрічка фокусу: зелений — за справою, персиковий — відволікання, сірий — невідомо"))
     }
 }

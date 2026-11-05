@@ -21,7 +21,7 @@ struct SoundButton: View {
                     .background(Circle().fill(Color.white.opacity(open ? 0.14 : 0.06)).frame(width: 34, height: 34))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(open ? "Close sound settings" : "Sound settings")
+            .accessibilityLabel(open ? tr("Close sound settings", "Закрити налаштування звуку") : tr("Sound settings", "Налаштування звуку"))
 
             if open {
                 panel.transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .topTrailing)))
@@ -45,7 +45,7 @@ struct SoundButton: View {
     private var panel: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Chirp volume")
+                Text(tr("Chirp volume", "Гучність цвірінькання"))
                     .font(.plexMono(12))
                     .textCase(.uppercase)
                     .foregroundStyle(Color(hex: Palette.inkSoft))
@@ -60,7 +60,7 @@ struct SoundButton: View {
                 live.sayHi()
                 lastTouch = Date()
             } label: {
-                Text(live.state == .asleep ? "Wake him up" : "Say hi")
+                Text(live.state == .asleep ? tr("Wake him up", "Розбудити його") : tr("Say hi", "Привітатись"))
                     .font(.plexSans(15).weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 44)
@@ -94,7 +94,7 @@ struct SoundButton: View {
                 }
             }
             if !link.connected {
-                Text("Connect to your Mac to talk to him.")
+                Text(tr("Connect to your Mac to talk to him.", "Підключись до Mac, щоб поговорити з ним."))
                     .font(.plexSans(12))
                     .foregroundStyle(Color(hex: Palette.inkSoft))
             }

@@ -94,12 +94,12 @@ final class FocusClient: ObservableObject {
         if let data = try? JSONSerialization.data(withJSONObject: status) { try? data.write(to: target, options: .atomic) }
     }
     func command(_ command: String, task: String? = nil, minutes: Double = 30, developerMode: Bool? = nil) {
-        guard let link, link.connected else { message = "Connect your paired Mac first."; return }
+        guard let link, link.connected else { message = tr("Connect your paired Mac first.", "Спершу підключись до свого Mac."); return }
         var args: [String: Any] = ["task": task ?? "", "minutes": minutes]
         if let developerMode { args["developerMode"] = developerMode }
         let data = try? JSONSerialization.data(withJSONObject: args)
         link.request(Packet(command: command, text: data.flatMap { String(data: $0, encoding: .utf8) })) { [weak self] reply in
-            self?.message = reply?.text ?? "The Mac didn't answer. Monitoring will pause if disconnected."
+            self?.message = reply?.text ?? tr("The Mac didn't answer. Monitoring will pause if disconnected.", "Mac не відповів. Якщо зв'язок розірвано, стеження призупиниться.")
         }
     }
 }

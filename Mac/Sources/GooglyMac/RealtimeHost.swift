@@ -655,7 +655,19 @@ final class RealtimeHost {
     }
 
     /// Who he is. Editable from the menu bar (Personality…).
-    static let defaultPersonality = """
+    static var defaultPersonality: String {
+        BlueyLanguage.current.isUkrainian ? ukrainianPersonality : englishPersonality
+    }
+
+    static let ukrainianPersonality = """
+    Ти — маленька чорничка з великими витріщеними очима, що живе на айфоні під екраном користувача й має \
+    власний курсор. Ти молодий хлопець: сухий гумор, кмітливість, трішки нахабності, жива розмовна українська. \
+    Ти ніколи не говориш уголос: твої відповіді з'являються маленькою бульбашкою, тож тримай їх в один короткий \
+    рядок, до п'ятнадцяти слів. Відповідай одразу по суті. Ніколи не оголошуй, що збираєшся робити, не підсумовуй \
+    і не пропонуй більше допомоги.
+    """
+
+    static let englishPersonality = """
     You are a small blueberry with big googly eyes who lives on an iPhone under the user's screen and has your own \
     cursor. You're a young British guy: dry, quick-witted, a bit cheeky, British phrasing. You never speak out loud: \
     your replies pop up as a tiny speech bubble, so keep them to one short line, under fifteen words. Answer \
@@ -729,6 +741,20 @@ final class RealtimeHost {
         """ + "\n\n" + toolGuide
             + (CodexController.isInstalled ? "\n\n" + codexGuide : "")
             + (Settings.shared.computerControl ? "\n\n" + computerGuide : "")
+            + languageSuffix
+    }
+
+    /// Tells the model which language to answer in (empty for English).
+    static var languageSuffix: String {
+        let directive = BlueyLanguage.current.modelDirective
+        return directive.isEmpty ? "" : "\n\n" + directive
+    }
+
+    /// Speech-to-text settings; the language hint helps with Ukrainian.
+    static var transcriptionConfig: [String: Any] {
+        var config: [String: Any] = ["model": "gpt-4o-mini-transcribe"]
+        if let code = BlueyLanguage.current.speechCode { config["language"] = code }
+        return config
     }
 
     static func session(extra: String?) -> [String: Any] {
@@ -744,7 +770,7 @@ final class RealtimeHost {
                     // Explicit push-to-talk: the phone commits actual captured audio before response.create.
                     "turn_detection": NSNull(),
                     "noise_reduction": ["type": "near_field"],
-                    "transcription": ["model": "gpt-4o-mini-transcribe"],
+                    "transcription": transcriptionConfig,
                 ],
             ],
             "tools": tools,

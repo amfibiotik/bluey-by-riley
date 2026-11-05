@@ -3,6 +3,12 @@ import GooglyShared
 @testable import GooglyMac
 
 final class FocusLifecycleTests: XCTestCase {
+    private var savedLanguage: BlueyLanguage?
+
+    // These tests assert English strings, so pin the language whatever the Mac is set to.
+    override func setUp() { savedLanguage = BlueyLanguage.chosen; BlueyLanguage.chosen = .english }
+    override func tearDown() { BlueyLanguage.chosen = savedLanguage }
+
     @MainActor func testRepeatedOffTaskChecksActuallyDeliverANudgeIncludingFailures() async throws {
         let answer = try FocusDecision.decode(Data(#"{"answers":[{"name":"activity","type":"choice","choice":"off_task","confidence":0.2,"probabilities":[{"value":"on_task","probability":0.005},{"value":"off_task","probability":0.99},{"value":"uncertain","probability":0.005}]}]}"#.utf8))
         for failure in ["none", "capture", "wording"] {
